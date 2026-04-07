@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
+from fastapi.responses import JSONResponse
 from models.basemodel import Item
+from datetime import datetime
 
 app = FastAPI(
     title="My First FastAPI Application",
@@ -20,9 +22,15 @@ def read_item(item_id: int, detail:bool = False):
         return {"item_id":item_id,"detail":"Full item details"}
     return {"item_id": item_id}
 
-@app.post("/items/")
+@app.post("/items/", status_code= status.HTTP_201_CREATED  )
 def create_item(item: Item):
-    return {"name":item.name, "price": item.price}
+
+    response_data={
+        "timestamp":datetime.now().isoformat(),
+        "data": {"name":item.name, "price": item.price}
+    }
+
+    return  JSONResponse(content=response_data)
 
 
 @app.put("/items/{item_id}")
