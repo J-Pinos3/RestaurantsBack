@@ -18,12 +18,15 @@ def read_root():
 # /items/42?detail=true
 @app.get("/items/{item_id}")#item_id is captured from url path (#path parameter)
 def read_item(item_id: int, detail:bool = False):
+
     if detail:
         return {"item_id":item_id,"detail":"Full item details"}
-    return {"item_id": item_id}
+
+    return {"item_id": item_id} 
+
 
 @app.post("/items/", status_code= status.HTTP_201_CREATED  )
-def create_item(item: Item):
+async def create_item(item: Item):
 
     response_data={
         "timestamp":datetime.now().isoformat(),
@@ -35,8 +38,11 @@ def create_item(item: Item):
 
 @app.put("/items/{item_id}")
 def update_item(item_id: int, item: Item):
+    if item.price <= 0:
+        raise HTTPException(status_code=400, detail="Price must be greater than 0")
     return { "item_id":item_id, "name":item.name, "price": item.price}
     
+
 
 @app.delete("/items/{item_id}")
 def delete_item(item_id: int):
@@ -49,5 +55,16 @@ def read_items(skip:int =0, limit:int =10):
     return {"skip": skip, "limit": limit}
 
 
+@app.get("/custom_headers/")
+async def custom_headers():
+    headers = { "X-Custom-Header":"MuCustomHeaderValue" }
+    return JSONResponse(content={"message": "Custom headers example"}, headers=headers)
 
+
+items = { "1":{"name":"Item 1", "price": 10} }
+@app.get("/itemss/{item_id}")
+async def read_item_by_id(item_id: str):
+    if item_id not in items:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return items[item_id]
 
